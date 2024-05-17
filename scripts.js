@@ -49,36 +49,6 @@ function drawPlatforms() {
   });
 }
 
-function activatePowerUp(platform) {
-  if (!platform.powerUpActive) {
-    powerUps.push({
-      x: platform.x,
-      y: platform.y - 20,
-      width: 20,
-      height: 20,
-      speed: 2,
-    });
-    platform.powerUpActive = true;
-  }
-}
-
-function drawPowerUps() {
-  ctx.fillStyle = 'red';
-  powerUps.forEach(powerUp => {
-    ctx.fillRect(powerUp.x - cameraOffsetX, powerUp.y, powerUp.width, powerUp.height);
-    powerUp.x += powerUp.speed;
-  });
-}
-
-function updatePowerUps() {
-  powerUps.forEach(powerUp => {
-    if (powerUp.x - cameraOffsetX > canvas.width) {
-      const index = powerUps.indexOf(powerUp);
-      powerUps.splice(index, 1);
-    }
-  });
-}
-
 function updatePlayer() {
   if (keys['ArrowRight']) {
     if (player.x < canvas.width / 2 || cameraOffsetX >= platforms[platforms.length - 1].x + platforms[platforms.length - 1].width - canvas.width) {
@@ -151,9 +121,7 @@ function gameLoop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawPlayer();
   drawPlatforms();
-  drawPowerUps();
   updatePlayer();
-  updatePowerUps();
   requestAnimationFrame(gameLoop);
 }
 
