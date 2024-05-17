@@ -24,7 +24,6 @@ const platforms = [
   { x: 450, y: 250, width: 100, height: 10 },
   { x: 600, y: 200, width: 100, height: 10 },
   { x: 750, y: 150, width: 100, height: 10 },
-  { x: 900, y: 100, width: 50, height: 50, hasPowerUp: true, powerUpActive: false },
 ];
 
 let cameraOffsetX = 0;

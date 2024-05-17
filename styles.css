@@ -1,3 +1,9 @@
+#pageTitle {
+  text-align: center;
+  font-size: 2em;
+  margin: 0.5em;
+}
+
 #canvasContainer {
   display: flex;
   justify-content: center;
