@@ -1,5 +1,7 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+
+// Assets loading
 const playerImage = new Image();
 playerImage.src = 'pharaoh.png'; // Ensure this path is correct
 const keys = {};
@@ -47,34 +49,68 @@ function drawPlayer() {
   ctx.drawImage(playerImage, player.x - cameraOffsetX, player.y, player.width, player.height);
 }
 
+// Load platform image and create gradient at the start of your game
+let platformImage = new Image();
+platformImage.src = './pyr-texture.png';
+
+let gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+gradient.addColorStop(0, '#725900');
+gradient.addColorStop(1, '#ffe28e');
+
 function drawPlatforms() {
-  ctx.fillStyle = 'goldenrod';
   platforms.forEach(platform => {
-    ctx.fillRect(platform.x - cameraOffsetX, platform.y, platform.width, platform.height);
+    // Draw platform with rounded corners
+    let radius = 10; // Adjust as needed
+    ctx.beginPath();
+    ctx.moveTo(platform.x - cameraOffsetX + radius, platform.y);
+    ctx.lineTo(platform.x - cameraOffsetX + platform.width - radius, platform.y);
+    ctx.arcTo(platform.x - cameraOffsetX + platform.width, platform.y, platform.x - cameraOffsetX + platform.width, platform.y + radius, radius);
+    ctx.lineTo(platform.x - cameraOffsetX + platform.width, platform.y + platform.height - radius);
+    ctx.arcTo(platform.x - cameraOffsetX + platform.width, platform.y + platform.height, platform.x - cameraOffsetX + platform.width - radius, platform.y + platform.height, radius);
+    ctx.lineTo(platform.x - cameraOffsetX + radius, platform.y + platform.height);
+    ctx.arcTo(platform.x - cameraOffsetX, platform.y + platform.height, platform.x - cameraOffsetX, platform.y + platform.height - radius, radius);
+    ctx.lineTo(platform.x - cameraOffsetX, platform.y + radius);
+    ctx.arcTo(platform.x - cameraOffsetX, platform.y, platform.x - cameraOffsetX + radius, platform.y, radius);
+    ctx.closePath();
+
+    // Fill platform with image texture and gradient
+    ctx.fillStyle = ctx.createPattern(platformImage, 'repeat');
+    ctx.fill();
+    ctx.fillStyle = gradient;
+    ctx.fill();
   });
 }
 
 function drawPyramids() {
-  const bigPyramidPositions = [100, 1300, 2500]; // Example positions for big pyramids
-  const smallPyramidPositions = [700, 1900, 3100]; // Example positions for small pyramids
-  const offset = 50; // Offset value
+  const bigPyramidY = 200; // Y-coordinate for big pyramid
+  const smallPyramidY = 250; // Y-coordinate for small pyramid
+  const offset = 80; // Offset value
+  const pyramidSpacing = 600; // Spacing between pyramids
 
-  bigPyramidPositions.forEach(pos => {
-    drawPyramid(ctx, pos - cameraOffsetX * 0.5 + offset, 250, 300, 180); // Draw big pyramid with offset
-  });
+// Generate array of x-coordinates for pyramids
+const pyramidXCoordinates = [];
+for (let i = -cameraOffsetX - pyramidSpacing; i < cameraOffsetX + canvas.width + pyramidSpacing; i += pyramidSpacing) {
+  pyramidXCoordinates.push(i);
+}
 
-  smallPyramidPositions.forEach(pos => {
-    drawPyramid(ctx, pos - cameraOffsetX * 0.5 - offset, 250, 200, 120); // Draw small pyramid with offset
+  pyramidXCoordinates.forEach(pyramidX => {
+    // Drawing big pyramid
+    let adjustedX = pyramidX - cameraOffsetX * 0.2 + offset; // Apply parallax and offset
+    drawPyramid(ctx, adjustedX, bigPyramidY, 300, 180, 'sandybrown'); // Pass color as an argument
+
+    // Drawing small pyramid
+    adjustedX = pyramidX - cameraOffsetX * 0.2 - offset; // Apply parallax and reverse offset
+    drawPyramid(ctx, adjustedX, smallPyramidY, 200, 120, 'darkgoldenrod'); // Pass color as an argument
   });
 }
 
-function drawPyramid(ctx, x, y, width, height) {
+function drawPyramid(ctx, x, y, width, height, color) {
   ctx.beginPath();
-  ctx.moveTo(x, y);
-  ctx.lineTo(x - width / 2, y + height);
-  ctx.lineTo(x + width / 2, y + height);
+  ctx.moveTo(x, y); // Top of the pyramid
+  ctx.lineTo(x - width / 2, y + height); // Bottom left
+  ctx.lineTo(x + width / 2, y + height); // Bottom right
   ctx.closePath();
-  ctx.fillStyle = 'sandybrown';
+  ctx.fillStyle = color; // Use color argument
   ctx.fill();
   ctx.strokeStyle = 'sienna';
   ctx.stroke();
@@ -173,7 +209,6 @@ function gameLoop() {
     drawPlatforms();
     drawPlayer();
     updatePlayer();
-    console.log(player.x, player.y, cameraOffsetX, player.dy, player.grounded);
     requestAnimationFrame(gameLoop);
 }
 
