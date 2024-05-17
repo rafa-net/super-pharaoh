@@ -7,6 +7,21 @@ const gravity = 0.8;
 const bgMusic = document.getElementById('bgMusic');
 const jumpSound = document.getElementById('jumpSound');
 
+const platforms = [
+  { x: 0, y: 350, width: 10000, height: 100 },
+  { x: 300, y: 300, width: 100, height: 10 },
+  { x: 450, y: 250, width: 100, height: 10 },
+  { x: 600, y: 200, width: 100, height: 10 },
+  { x: 750, y: 150, width: 100, height: 10 },
+  { x: 900, y: 200, width: 100, height: 10 },
+  { x: 1100, y: 300, width: 100, height: 10 },
+  { x: 1300, y: 200, width: 100, height: 10 },
+  { x: 300, y: 300, width: 100, height: 10 },
+  { x: 450, y: 250, width: 100, height: 10 },
+  { x: 600, y: 200, width: 100, height: 10 },
+  { x: 750, y: 150, width: 100, height: 10 },
+];
+
 const player = {
   x: 50,
   y: 200,
@@ -17,13 +32,6 @@ const player = {
   jumpPower: 15,
   grounded: false,
 };
-
-const platforms = [
-  { x: 0, y: 350, width: 1000, height: 100 },
-  { x: 300, y: 300, width: 100, height: 10 },
-  { x: 450, y: 250, width: 100, height: 10 },
-  { x: 600, y: 200, width: 100, height: 10 },
-];
 
 let cameraOffsetX = 0;
 
@@ -66,126 +74,66 @@ function drawPyramid(ctx, x, y, width, height) {
 }
 
 function updateCamera() {
-    // Calculate the right edge of the camera based on its current offset
-    let cameraRightEdge = cameraOffsetX + canvas.width;
-
-    // Calculate the player's center position
+    let maxOffsetX = platforms.reduce((max, p) => Math.max(max, p.x + p.width), 0) - canvas.width;
     let playerCenterX = player.x + player.width / 2;
 
-    // Update the camera offset based on player movement, keeping the player in the center of the canvas if possible
-    if (playerCenterX > canvas.width / 2 && playerCenterX < (gameObjects.platforms[gameObjects.platforms.length - 1].x + gameObjects.platforms[gameObjects.platforms.length - 1].width) - canvas.width / 2) {
+    if (playerCenterX > canvas.width / 2 && playerCenterX < maxOffsetX + canvas.width / 2) {
         cameraOffsetX = playerCenterX - canvas.width / 2;
     }
-
-    // Ensure the camera does not scroll beyond the level's boundaries
-    cameraOffsetX = Math.max(0, cameraOffsetX); // Prevent scrolling too far left
-    cameraOffsetX = Math.min(cameraOffsetX, gameObjects.platforms[gameObjects.platforms.length - 1].x + gameObjects.platforms[gameObjects.platforms.length - 1].width - canvas.width); // Prevent scrolling too far right
+    cameraOffsetX = Math.max(0, Math.min(cameraOffsetX, maxOffsetX));
 }
 
 function updatePlayer() {
-    let proposedX = player.x + (keys['ArrowRight'] ? player.speed : 0) - (keys['ArrowLeft'] ? player.speed : 0);
-
-    // Simple boundary checks
-    if (proposedX >= 0 && proposedX <= gameObjects.platforms[gameObjects.platforms.length - 1].x + gameObjects.platforms[gameObjects.platforms.length - 1].width - player.width) {
-        player.x = proposedX;
+    if (keys['ArrowRight']) {
+        let newX = player.x + player.speed;
+        if (newX < platforms[platforms.length - 1].x + platforms[platforms.length - 1].width - player.width && !isColliding(newX, player.y, player.width, player.height)) {
+            player.x = newX;
+        }
     }
 
-    // Gravity and vertical movement
+    if (keys['ArrowLeft']) {
+        let newX = player.x - player.speed;
+        if (newX > 0 && !isColliding(newX, player.y, player.width, player.height)) {
+            player.x = newX;
+        }
+    }
+
+    if (keys[' ']) {
+        if (player.grounded) {
+            player.dy = -player.jumpPower;
+            player.grounded = false;
+            jumpSound.play();
+        }
+    }
+
     player.dy += gravity;
-    let proposedY = player.y + player.dy;
-
-    // Check for collisions with platforms for vertical movement
-    if (!isColliding(player.x, proposedY, player.width, player.height)) {
-        player.y = proposedY;
+    let newY = player.y + player.dy;
+    if (!isColliding(player.x, newY, player.width, player.height)) {
+        player.y = newY;
     } else {
-        handleVerticalCollision();
+        while (isColliding(player.x, newY, player.width, player.height)) {
+            newY--;
+        }
+        player.y = newY;
+        player.dy = 0;
+        player.grounded = true;
     }
 
-    checkGroundCollision();
+    updateCamera();
+}
+
+function isColliding(x, y, width, height) {
+    return platforms.some(p => x + width > p.x - cameraOffsetX && x < p.x + p.width - cameraOffsetX && y + height > p.y && y < p.y + p.height);
 }
 
 function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    updateCamera();
-    drawGameObjects();
+    drawPyramids();
+    drawPlatforms();
     drawPlayer();
     updatePlayer();
+    console.log(player.x, player.y, cameraOffsetX, player.dy, player.grounded, platforms);
     requestAnimationFrame(gameLoop);
-}
-
-window.onload = function() {
-    bgMusic.volume = 0.5;
-    bgMusic.play();
-    gameLoop();
-}
-
-
-function updatePlayer() {
-  let moveRight = keys['ArrowRight'];
-  let moveLeft = keys['ArrowLeft'];
-
-  if (moveRight && canMove(player.x + player.speed, player.y)) {
-    if (player.x < canvas.width * 0.5 || cameraOffsetX >= platforms[platforms.length - 1].x + platforms[platforms.length - 1].width - canvas.width) {
-      player.x += player.speed;
-    } else {
-      cameraOffsetX += player.speed;
-    }
-  }
-
-  if (moveLeft && canMove(player.x - player.speed, player.y)) {
-    if (player.x > canvas.width * 0.5 || cameraOffsetX <= 0) {
-      player.x -= player.speed;
-    } else {
-      cameraOffsetX -= player.speed;
-    }
-  }
-
-  if (keys[' '] && player.grounded) {
-    player.dy = -player.jumpPower;
-    player.grounded = false;
-    jumpSound.play();
-  }
-
-  // Gravity
-  player.dy += gravity;
-  player.y += player.dy;
-
-  // Check ground collision
-  checkGroundCollision();
-
-  // Prevent player from falling off the bottom of the canvas
-  if (player.y + player.height > canvas.height) {
-    player.y = canvas.height - player.height;
-    player.grounded = true;
-    player.dy = 0;
-  }
-}
-
-function canMove(x, y) {
-  return !platforms.some(p => x + player.width > p.x - cameraOffsetX && x < p.x + p.width - cameraOffsetX && y + player.height > p.y && y < p.y + p.height);
-}
-
-function checkGroundCollision() {
-  player.grounded = platforms.some(p => {
-    if (player.x + player.width > p.x - cameraOffsetX && player.x < p.x + p.width - cameraOffsetX &&
-        player.y + player.height > p.y && player.y < p.y + p.height) {
-      player.y = p.y - player.height;
-      player.dy = 0;
-      return true;
-    }
-    return false;
-  });
-}
-
-function gameLoop() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  drawPyramids(); // Draw parallax background
-  drawPlatforms();
-  drawPlayer();
-  updatePlayer();
-  console.log("Player position:", player.x, player.y, player.dy);
-  console.log("Camera offset:", cameraOffsetX);
-  requestAnimationFrame(gameLoop);
 }
 
 window.onload = function() {
