@@ -55,9 +55,16 @@ function drawPlatforms() {
 }
 
 function drawPyramids() {
-  const pyramidPositions = [100, 700, 1300, 1900, 2500, 3100]; // Example pyramid positions
-  pyramidPositions.forEach(pos => {
-    drawPyramid(ctx, pos - cameraOffsetX * 0.5, 250, 200, 120); // Adjust x for parallax effect
+  const bigPyramidPositions = [100, 1300, 2500]; // Example positions for big pyramids
+  const smallPyramidPositions = [700, 1900, 3100]; // Example positions for small pyramids
+  const offset = 50; // Offset value
+
+  bigPyramidPositions.forEach(pos => {
+    drawPyramid(ctx, pos - cameraOffsetX * 0.5 + offset, 250, 300, 180); // Draw big pyramid with offset
+  });
+
+  smallPyramidPositions.forEach(pos => {
+    drawPyramid(ctx, pos - cameraOffsetX * 0.5 - offset, 250, 200, 120); // Draw small pyramid with offset
   });
 }
 
@@ -71,25 +78,30 @@ function drawPyramid(ctx, x, y, width, height) {
   ctx.fill();
   ctx.strokeStyle = 'sienna';
   ctx.stroke();
+
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+  ctx.shadowBlur = 10;
+  ctx.shadowOffsetX = 10;
+  ctx.shadowOffsetY = 10;
 }
 
 function updateCamera() {
-    let maxOffsetX = platforms.reduce((max, p) => Math.max(max, p.x + p.width), 0) - canvas.width;
-    let playerCenterX = player.x + player.width / 2;
+  let maxOffsetX = platforms.reduce((max, p) => Math.max(max, p.x + p.width), 0) - canvas.width + player.width;
+  let playerCenterX = player.x + player.width / 2;
 
-    if (playerCenterX > canvas.width / 2 && playerCenterX < maxOffsetX + canvas.width / 2) {
-        cameraOffsetX = playerCenterX - canvas.width / 2;
-    }
-    cameraOffsetX = Math.max(0, Math.min(cameraOffsetX, maxOffsetX));
+  if (playerCenterX > canvas.width / 2 && playerCenterX < maxOffsetX + canvas.width / 2) {
+      cameraOffsetX = playerCenterX - canvas.width / 2;
+  }
+  cameraOffsetX = Math.max(0, Math.min(cameraOffsetX, maxOffsetX));
 }
 
 function updatePlayer() {
-    if (keys['ArrowRight']) {
-        let newX = player.x + player.speed;
-        if (newX < platforms[platforms.length - 1].x + platforms[platforms.length - 1].width - player.width && !isColliding(newX, player.y, player.width, player.height)) {
-            player.x = newX;
-        }
-    }
+  if (keys['ArrowRight']) {
+      let newX = player.x + player.speed;
+      if (!isColliding(newX, player.y, player.width, player.height)) {
+          player.x = newX;
+      }
+  }
 
     if (keys['ArrowLeft']) {
         let newX = player.x - player.speed;
@@ -105,34 +117,63 @@ function updatePlayer() {
             jumpSound.play();
         }
     }
-
     player.dy += gravity;
     let newY = player.y + player.dy;
     if (!isColliding(player.x, newY, player.width, player.height)) {
         player.y = newY;
     } else {
-        while (isColliding(player.x, newY, player.width, player.height)) {
-            newY--;
+        if (player.dy > 0) { // Falling down
+            while (isColliding(player.x, newY, player.width, player.height)) {
+                newY--;
+            }
+            player.y = newY;
+            player.dy = -player.dy * 0.5; // Bounce back with half the velocity
+            player.grounded = true;
+        } else if (player.dy < 0) { // Jumping up
+            while (isColliding(player.x, newY, player.width, player.height)) {
+                newY++;
+            }
+            player.y = newY;
+            player.dy = -player.dy * 0.5; // Bounce back with half the velocity
         }
-        player.y = newY;
-        player.dy = 0;
-        player.grounded = true;
     }
 
     updateCamera();
 }
 
 function isColliding(x, y, width, height) {
-    return platforms.some(p => x + width > p.x - cameraOffsetX && x < p.x + p.width - cameraOffsetX && y + height > p.y && y < p.y + p.height);
+  const playerX = x - cameraOffsetX; // Subtract cameraOffsetX from player's x-coordinate
+
+  return platforms.some(p => {
+      const playerLeft = playerX;
+      const playerRight = playerX + width;
+      const playerTop = y;
+      const playerBottom = y + height;
+
+      const platformLeft = p.x - cameraOffsetX; // Subtract cameraOffsetX from platform's x-coordinate
+      const platformRight = p.x + p.width - cameraOffsetX; // Subtract cameraOffsetX from platform's x-coordinate
+      const platformTop = p.y;
+      const platformBottom = p.y + p.height;
+
+      return !(playerLeft > platformRight || 
+               playerRight < platformLeft || 
+               playerTop > platformBottom || 
+               playerBottom < platformTop);
+  });
 }
 
 function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawPyramids();
+      // Reset shadow properties so they don't affect other drawings
+      ctx.shadowColor = 'rgba(0, 0, 0, 0)';
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
     drawPlatforms();
     drawPlayer();
     updatePlayer();
-    console.log(player.x, player.y, cameraOffsetX, player.dy, player.grounded, platforms);
+    console.log(player.x, player.y, cameraOffsetX, player.dy, player.grounded);
     requestAnimationFrame(gameLoop);
 }
 
