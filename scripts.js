@@ -19,11 +19,14 @@ const player = {
 };
 
 const platforms = [
-  { x: 0, y: 350, width: 1000, height: 100 },
+  { x: 0, y: 350, width: 10000, height: 100 },
   { x: 300, y: 300, width: 100, height: 10 },
   { x: 450, y: 250, width: 100, height: 10 },
   { x: 600, y: 200, width: 100, height: 10 },
   { x: 750, y: 150, width: 100, height: 10 },
+  { x: 900, y: 150, width: 100, height: 10 },
+  { x: 1100, y: 150, width: 100, height: 10 },
+  { x: 1300, y: 150, width: 100, height: 10 },
 ];
 
 let cameraOffsetX = 0;
