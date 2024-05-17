@@ -1,7 +1,7 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const playerImage = new Image();
-playerImage.src = 'pharaoh.png';
+playerImage.src = 'pharaoh.png';  // Make sure the path to your image is correct
 const keys = {};
 const gravity = 0.8;
 
@@ -11,7 +11,7 @@ const player = {
   width: 60,
   height: 100,
   speed: 6,
-  dy: 0, // gravity effect, delta y
+  dy: 0,
   jumpPower: 15,
   grounded: false,
 };
@@ -22,9 +22,12 @@ const platforms = [
   { x: 450, y: 250, width: 100, height: 10 },
   { x: 600, y: 200, width: 100, height: 10 },
   { x: 750, y: 150, width: 100, height: 10 },
+  // Adding new square platforms with power-up mechanics
+  { x: 900, y: 100, width: 50, height: 50, hasPowerUp: true, powerUpActive: false },
 ];
 
 let cameraOffsetX = 0;
+let powerUps = [];
 
 document.addEventListener('keydown', (e) => {
   keys[e.key] = true;
@@ -42,6 +45,36 @@ function drawPlatforms() {
   ctx.fillStyle = 'green';
   platforms.forEach((platform) => {
     ctx.fillRect(platform.x - cameraOffsetX, platform.y, platform.width, platform.height);
+  });
+}
+
+function activatePowerUp(platform) {
+  if (!platform.powerUpActive) {
+    powerUps.push({
+      x: platform.x,
+      y: platform.y - 20,
+      width: 20,
+      height: 20,
+      speed: 2,
+    });
+    platform.powerUpActive = true;
+  }
+}
+
+function drawPowerUps() {
+  ctx.fillStyle = 'red';
+  powerUps.forEach(powerUp => {
+    ctx.fillRect(powerUp.x - cameraOffsetX, powerUp.y, powerUp.width, powerUp.height);
+    powerUp.x += powerUp.speed;  // Move horizontally
+  });
+}
+
+function updatePowerUps() {
+  powerUps.forEach(powerUp => {
+    if (powerUp.x - cameraOffsetX > canvas.width) {
+      const index = powerUps.indexOf(powerUp);
+      powerUps.splice(index, 1);
+    }
   });
 }
 
@@ -81,6 +114,11 @@ function updatePlayer() {
       player.y = platform.y - player.height;
       player.dy = 0;
       player.grounded = true;
+
+      // Activate power-up if applicable
+      if (platform.hasPowerUp && !platform.powerUpActive) {
+        activatePowerUp(platform);
+      }
     }
   });
 
@@ -96,7 +134,9 @@ function gameLoop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawPlayer();
   drawPlatforms();
+  drawPowerUps();
   updatePlayer();
+  updatePowerUps();
   requestAnimationFrame(gameLoop);
 }
 
