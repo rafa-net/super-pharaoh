@@ -4,6 +4,8 @@ const playerImage = new Image();
 playerImage.src = 'pharaoh.png';  // Make sure the path to your image is correct
 const keys = {};
 const gravity = 0.8;
+const bgMusic = document.getElementById('bgMusic');
+const jumpSound = document.getElementById('jumpSound');
 
 const player = {
   x: 50,
@@ -129,6 +131,32 @@ function updatePlayer() {
     player.grounded = true;
   }
 }
+
+// Function to start background music
+function startBackgroundMusic() {
+  bgMusic.volume = 0.5;  // Set volume to 50%
+  bgMusic.play();
+}
+
+// Function to play jump sound
+function playJumpSound() {
+  jumpSound.play();
+}
+
+// Adjust volume if needed
+function adjustVolume(volumeLevel) {
+  bgMusic.volume = volumeLevel; // Range: 0.0 to 1.0
+}
+
+// To start background music when the game loads
+window.onload = startBackgroundMusic;
+
+// To play jump sound on jumping
+document.addEventListener('keydown', (e) => {
+  if (e.key === ' ' && player.grounded) {  // Assuming spacebar triggers a jump
+      playJumpSound();
+  }
+});
 
 function gameLoop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
