@@ -1,7 +1,7 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const playerImage = new Image();
-playerImage.src = 'pharaoh.png';  // Make sure the path to your image is correct
+playerImage.src = 'pharaoh.png';
 const keys = {};
 const gravity = 0.8;
 const bgMusic = document.getElementById('bgMusic');
@@ -24,7 +24,6 @@ const platforms = [
   { x: 450, y: 250, width: 100, height: 10 },
   { x: 600, y: 200, width: 100, height: 10 },
   { x: 750, y: 150, width: 100, height: 10 },
-  // Adding new square platforms with power-up mechanics
   { x: 900, y: 100, width: 50, height: 50, hasPowerUp: true, powerUpActive: false },
 ];
 
@@ -67,7 +66,7 @@ function drawPowerUps() {
   ctx.fillStyle = 'red';
   powerUps.forEach(powerUp => {
     ctx.fillRect(powerUp.x - cameraOffsetX, powerUp.y, powerUp.width, powerUp.height);
-    powerUp.x += powerUp.speed;  // Move horizontally
+    powerUp.x += powerUp.speed;
   });
 }
 
@@ -81,7 +80,6 @@ function updatePowerUps() {
 }
 
 function updatePlayer() {
-  // Horizontal movement
   if (keys['ArrowRight']) {
     if (player.x < canvas.width / 2 || cameraOffsetX >= platforms[platforms.length - 1].x + platforms[platforms.length - 1].width - canvas.width) {
       player.x += player.speed;
@@ -97,7 +95,6 @@ function updatePlayer() {
     }
   }
 
-  // Vertical movement and jumping
   if (keys[' '] && player.grounded) {
     player.dy = -player.jumpPower;
     player.grounded = false;
@@ -106,7 +103,6 @@ function updatePlayer() {
   player.dy += gravity;
   player.y += player.dy;
 
-  // Collision detection with platforms
   player.grounded = false;
   platforms.forEach(platform => {
     if (player.x < platform.x + platform.width &&
@@ -117,14 +113,12 @@ function updatePlayer() {
       player.dy = 0;
       player.grounded = true;
 
-      // Activate power-up if applicable
       if (platform.hasPowerUp && !platform.powerUpActive) {
         activatePowerUp(platform);
       }
     }
   });
 
-  // Prevent player from falling through the bottom
   if (player.y + player.height > canvas.height) {
     player.y = canvas.height - player.height;
     player.dy = 0;
@@ -132,28 +126,23 @@ function updatePlayer() {
   }
 }
 
-// Function to start background music
 function startBackgroundMusic() {
-  bgMusic.volume = 0.5;  // Set volume to 50%
+  bgMusic.volume = 0.5;
   bgMusic.play();
 }
 
-// Function to play jump sound
 function playJumpSound() {
   jumpSound.play();
 }
 
-// Adjust volume if needed
 function adjustVolume(volumeLevel) {
-  bgMusic.volume = volumeLevel; // Range: 0.0 to 1.0
+  bgMusic.volume = volumeLevel;
 }
 
-// To start background music when the game loads
 window.onload = startBackgroundMusic;
 
-// To play jump sound on jumping
 document.addEventListener('keydown', (e) => {
-  if (e.key === ' ' && player.grounded) {  // Assuming spacebar triggers a jump
+  if (e.key === ' ' && player.grounded) {
       playJumpSound();
   }
 });
