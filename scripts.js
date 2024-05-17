@@ -3,12 +3,16 @@ const ctx = canvas.getContext('2d');
 
 // Assets loading
 const playerImage = new Image();
-playerImage.src = 'pharaoh.png'; // Ensure this path is correct
-const keys = {};
-const gravity = 0.8;
+playerImage.src = 'assets/pharaoh.png';
 const bgMusic = document.getElementById('bgMusic');
 const jumpSound = document.getElementById('jumpSound');
+// Load platform image and create gradient at the start of your game
+let platformImage = new Image();
+platformImage.src = './texture.png';
 
+let cameraOffsetX = 0;
+const gravity = 0.8;
+const keys = {};
 const platforms = [
   { x: 0, y: 350, width: 10000, height: 100 },
   { x: 300, y: 300, width: 100, height: 10 },
@@ -23,7 +27,6 @@ const platforms = [
   { x: 600, y: 200, width: 100, height: 10 },
   { x: 750, y: 150, width: 100, height: 10 },
 ];
-
 const player = {
   x: 50,
   y: 200,
@@ -35,32 +38,22 @@ const player = {
   grounded: false,
 };
 
-let cameraOffsetX = 0;
-
-document.addEventListener('keydown', (e) => {
-  keys[e.key] = true;
-});
-
-document.addEventListener('keyup', (e) => {
-  keys[e.key] = false;
-});
+function setupEventListeners() {
+  document.addEventListener('keydown', e => keys[e.key] = true);
+  document.addEventListener('keyup', e => keys[e.key] = false);
+}
 
 function drawPlayer() {
   ctx.drawImage(playerImage, player.x - cameraOffsetX, player.y, player.width, player.height);
 }
 
-// Load platform image and create gradient at the start of your game
-let platformImage = new Image();
-platformImage.src = './pyr-texture.png';
-
-let gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-gradient.addColorStop(0, '#725900');
-gradient.addColorStop(1, '#ffe28e');
-
 function drawPlatforms() {
+  let gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+  gradient.addColorStop(0, '#725900');
+  gradient.addColorStop(1, '#ffe28e');
   platforms.forEach(platform => {
     // Draw platform with rounded corners
-    let radius = 10; // Adjust as needed
+    let radius = 20; // Adjust as needed
     ctx.beginPath();
     ctx.moveTo(platform.x - cameraOffsetX + radius, platform.y);
     ctx.lineTo(platform.x - cameraOffsetX + platform.width - radius, platform.y);
@@ -213,6 +206,7 @@ function gameLoop() {
 }
 
 window.onload = function() {
+  setupEventListeners();
   bgMusic.volume = 0.5;
   bgMusic.play();
   gameLoop();
