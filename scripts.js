@@ -16,10 +16,11 @@ const player = {
 };
 
 const platforms = [
-  { x: 0, y: 350, width: 800, height: 50 },
+  { x: 0, y: 350, width: 1000, height: 100 },
   { x: 300, y: 300, width: 100, height: 10 },
   { x: 450, y: 250, width: 100, height: 10 },
   { x: 600, y: 200, width: 100, height: 10 },
+  { x: 750, y: 150, width: 100, height: 10 },
 ];
 
 document.addEventListener('keydown', (e) => {
@@ -49,7 +50,7 @@ function updatePlayer() {
   if (keys['ArrowLeft']) {
     player.x -= player.speed;
   }
-  if (keys['Space'] && player.grounded) {
+  if (keys[' '] && player.grounded) {
     player.dy = -player.jumpPower;
     player.grounded = false;
   }
