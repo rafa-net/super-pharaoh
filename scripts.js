@@ -1,7 +1,7 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const playerImage = new Image();
-playerImage.src = 'pharaoh.png';
+playerImage.src = 'pharaoh.png'; // Make sure this path is correct
 const keys = {};
 const gravity = 0.8;
 const bgMusic = document.getElementById('bgMusic');
@@ -27,7 +27,6 @@ const platforms = [
 ];
 
 let cameraOffsetX = 0;
-let powerUps = [];
 
 document.addEventListener('keydown', (e) => {
   keys[e.key] = true;
@@ -43,48 +42,79 @@ function drawPlayer() {
 
 function drawPlatforms() {
   ctx.fillStyle = 'green';
-  platforms.forEach((platform) => {
+  platforms.forEach(platform => {
     ctx.fillRect(platform.x - cameraOffsetX, platform.y, platform.width, platform.height);
   });
 }
 
 function updatePlayer() {
   if (keys['ArrowRight']) {
-    if (player.x < canvas.width / 2 || cameraOffsetX >= platforms[platforms.length - 1].x + platforms[platforms.length - 1].width - canvas.width) {
-      player.x += player.speed;
-    } else {
-      cameraOffsetX += player.speed;
+    let nextX = player.x + player.speed;
+    let nextRight = nextX + player.width;
+    let rightBoundary = cameraOffsetX + canvas.width;
+    let moveRight = true;
+
+    // Check if the player is trying to move into a platform
+    platforms.forEach(platform => {
+      if (nextRight > platform.x - cameraOffsetX &&
+          player.x < platform.x + platform.width - cameraOffsetX &&
+          player.y + player.height > platform.y &&
+          player.y < platform.y + platform.height) {
+        moveRight = false;
+      }
+    });
+
+    if (moveRight) {
+      if (nextRight < rightBoundary) {
+        player.x = nextX;
+      } else {
+        cameraOffsetX += player.speed;
+      }
     }
   }
-  if (keys['ArrowLeft']) {
-    if (player.x > canvas.width / 2 || cameraOffsetX <= 0) {
-      player.x -= player.speed;
-    } else {
-      cameraOffsetX -= player.speed;
+  
+  if (keys['ArrowLeft'] && player.x > 0) {
+    let nextX = player.x - player.speed;
+    let moveLeft = true;
+
+    // Check if the player is trying to move into a platform
+    platforms.forEach(platform => {
+      if (nextX < platform.x + platform.width - cameraOffsetX &&
+          player.x > platform.x - cameraOffsetX &&
+          player.y + player.height > platform.y &&
+          player.y < platform.y + platform.height) {
+        moveLeft = false;
+      }
+    });
+
+    if (moveLeft) {
+      if (player.x > canvas.width * 0.5 || cameraOffsetX === 0) {
+        player.x = nextX;
+      } else {
+        cameraOffsetX -= player.speed;
+      }
     }
   }
 
   if (keys[' '] && player.grounded) {
     player.dy = -player.jumpPower;
     player.grounded = false;
+    playJumpSound();
   }
 
   player.dy += gravity;
   player.y += player.dy;
 
+  // Ground collision
   player.grounded = false;
   platforms.forEach(platform => {
-    if (player.x < platform.x + platform.width &&
-        player.x + player.width > platform.x &&
+    if (player.x < platform.x + platform.width - cameraOffsetX &&
+        player.x + player.width > platform.x - cameraOffsetX &&
         player.y < platform.y + platform.height &&
         player.y + player.height > platform.y) {
       player.y = platform.y - player.height;
       player.dy = 0;
       player.grounded = true;
-
-      if (platform.hasPowerUp && !platform.powerUpActive) {
-        activatePowerUp(platform);
-      }
     }
   });
 
@@ -100,21 +130,11 @@ function startBackgroundMusic() {
   bgMusic.play();
 }
 
+window.onload = startBackgroundMusic;
+
 function playJumpSound() {
   jumpSound.play();
 }
-
-function adjustVolume(volumeLevel) {
-  bgMusic.volume = volumeLevel;
-}
-
-window.onload = startBackgroundMusic;
-
-document.addEventListener('keydown', (e) => {
-  if (e.key === ' ' && player.grounded) {
-      playJumpSound();
-  }
-});
 
 function gameLoop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
