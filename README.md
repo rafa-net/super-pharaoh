@@ -1,5 +1,7 @@
 # Super Pharaoh
 
+**DISCLAIMER**: UNDER CONSTRUCTION!
+
 Super Pharaoh is a 2D side-scrolling platformer game built using HTML5 Canvas and JavaScript. It is the result of my training in JavaScript, AI prompting, and technical writing. I will continue to improve and create.
 
 ![Super Pharaoh Screenshot](./assets/sf-screen.png)
