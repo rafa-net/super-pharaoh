@@ -24,7 +24,7 @@ Super Pharaoh is a 2D side-scrolling platformer game built using HTML5 Canvas an
 
 ## Demo
 
-You can play the game [here](rafa-net.github.io/super-pharaoh/).
+You can play the game [here](https://rafa-net.github.io/super-pharaoh/).
 
 ## Installation
 
