@@ -1,18 +1,18 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// Assets loading
+// Load assets
 const playerImage = new Image();
 playerImage.src = 'assets/pharaoh.png';
 const bgMusic = document.getElementById('bgMusic');
 const jumpSound = document.getElementById('jumpSound');
-// Load platform image and create gradient at the start of your game
-let platformImage = new Image();
-platformImage.src = './texture.png';
 
+// Declare essential variables
 let cameraOffsetX = 0;
 const gravity = 0.8;
 const keys = {};
+
+// Platforms
 const platforms = [
   { x: 0, y: 350, width: 10000, height: 100 },
   { x: 300, y: 300, width: 100, height: 10 },
@@ -22,11 +22,9 @@ const platforms = [
   { x: 900, y: 200, width: 100, height: 10 },
   { x: 1100, y: 300, width: 100, height: 10 },
   { x: 1300, y: 200, width: 100, height: 10 },
-  { x: 300, y: 300, width: 100, height: 10 },
-  { x: 450, y: 250, width: 100, height: 10 },
-  { x: 600, y: 200, width: 100, height: 10 },
-  { x: 750, y: 150, width: 100, height: 10 },
 ];
+
+// Load player object
 const player = {
   x: 50,
   y: 200,
@@ -47,32 +45,50 @@ function drawPlayer() {
   ctx.drawImage(playerImage, player.x - cameraOffsetX, player.y, player.width, player.height);
 }
 
-function drawPlatforms() {
-  let gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-  gradient.addColorStop(0, '#725900');
-  gradient.addColorStop(1, '#ffe28e');
-  platforms.forEach(platform => {
-    // Draw platform with rounded corners
-    let radius = 20; // Adjust as needed
-    ctx.beginPath();
-    ctx.moveTo(platform.x - cameraOffsetX + radius, platform.y);
-    ctx.lineTo(platform.x - cameraOffsetX + platform.width - radius, platform.y);
-    ctx.arcTo(platform.x - cameraOffsetX + platform.width, platform.y, platform.x - cameraOffsetX + platform.width, platform.y + radius, radius);
-    ctx.lineTo(platform.x - cameraOffsetX + platform.width, platform.y + platform.height - radius);
-    ctx.arcTo(platform.x - cameraOffsetX + platform.width, platform.y + platform.height, platform.x - cameraOffsetX + platform.width - radius, platform.y + platform.height, radius);
-    ctx.lineTo(platform.x - cameraOffsetX + radius, platform.y + platform.height);
-    ctx.arcTo(platform.x - cameraOffsetX, platform.y + platform.height, platform.x - cameraOffsetX, platform.y + platform.height - radius, radius);
-    ctx.lineTo(platform.x - cameraOffsetX, platform.y + radius);
-    ctx.arcTo(platform.x - cameraOffsetX, platform.y, platform.x - cameraOffsetX + radius, platform.y, radius);
-    ctx.closePath();
+class Platform {
+  constructor(x, y, width, height, type) {
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+    this.type = type;
+  }
 
-    // Fill platform with image texture and gradient
-    ctx.fillStyle = ctx.createPattern(platformImage, 'repeat');
+  draw() {
+    ctx.beginPath();
+    ctx.rect(this.x - cameraOffsetX, this.y, this.width, this.height);
+    if (this.type === 'normal') {
+      ctx.fillStyle = 'sienna';
+    } else if (this.type === 'powerup') {
+      ctx.fillStyle = 'gold'; // Change color for powerup platform
+    } else {
+      ctx.fillStyle = 'gray';
+    }
     ctx.fill();
-    ctx.fillStyle = gradient;
-    ctx.fill();
+    ctx.strokeStyle = 'black';
+    ctx.stroke();
+
+    // Draw a circle in the middle of the powerup platform
+    if (this.type === 'powerup') {
+      ctx.beginPath();
+      ctx.arc(this.x - cameraOffsetX + this.width / 2, this.y + this.height / 2, this.width / 4, 0, Math.PI * 2, false);
+      ctx.fillStyle = '#6b5c00'; // Change this to the color you want for the circle
+      ctx.fill();
+      ctx.strokeStyle = 'black';
+      ctx.stroke();
+    }
+  }
+}
+
+function drawPlatforms() {
+  platforms.forEach(p => {
+    const platform = new Platform(p.x, p.y, p.width, p.height, p.type || 'normal');
+    platform.draw();
   });
 }
+
+const powerupPlatform = new Platform(150, 130, 60, 60, 'powerup');
+platforms.push(powerupPlatform);
 
 function drawPyramids() {
   const bigPyramidY = 200; // Y-coordinate for big pyramid
@@ -124,7 +140,7 @@ function updateCamera() {
   cameraOffsetX = Math.max(0, Math.min(cameraOffsetX, maxOffsetX));
 }
 
-function updatePlayer() {
+function playerControls() {
   if (keys['ArrowRight']) {
       let newX = player.x + player.speed;
       if (!isColliding(newX, player.y, player.width, player.height)) {
@@ -146,6 +162,9 @@ function updatePlayer() {
             jumpSound.play();
         }
     }
+  }
+  
+  function updatePlayer() {
     player.dy += gravity;
     let newY = player.y + player.dy;
     if (!isColliding(player.x, newY, player.width, player.height)) {
@@ -156,14 +175,14 @@ function updatePlayer() {
                 newY--;
             }
             player.y = newY;
-            player.dy = -player.dy * 0.5; // Bounce back with half the velocity
+            player.dy = -player.dy * 0.3; // Bounce back with 0.3 times the velocity
             player.grounded = true;
         } else if (player.dy < 0) { // Jumping up
             while (isColliding(player.x, newY, player.width, player.height)) {
                 newY++;
             }
             player.y = newY;
-            player.dy = -player.dy * 0.5; // Bounce back with half the velocity
+            player.dy = -player.dy * 0.3; // Bounce back with 0.3 times the velocity
         }
     }
 
@@ -201,6 +220,7 @@ function gameLoop() {
       ctx.shadowOffsetY = 0;
     drawPlatforms();
     drawPlayer();
+    playerControls();
     updatePlayer();
     requestAnimationFrame(gameLoop);
 }
