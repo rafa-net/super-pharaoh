@@ -1,15 +1,11 @@
-#pageTitle {
-  text-align: center;
-  font-size: 2em;
-  margin: 0.5em;
-}
-
 #canvasContainer {
   display: flex;
   justify-content: center;
   align-items: center;
+  height: 90vh;
 }
 
 canvas {
-  background: #ffefc4;
+  border-radius: 10px;
+  background: #ffecb9;
 }

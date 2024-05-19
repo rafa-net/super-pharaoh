@@ -271,13 +271,15 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
+// Background music
 window.onload = function () {
   setupEventListeners();
   gameLoop();
 
-  // Play the music after user interaction
-  window.addEventListener("click", function () {
-    bgMusic.volume = 0.5;
-    bgMusic.play();
+  window.addEventListener("keydown", function (e) {
+    if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+      bgMusic.volume = 0.3;
+      bgMusic.play();
+    }
   });
 };
