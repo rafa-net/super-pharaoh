@@ -70,7 +70,7 @@ const player = {
 
 // Platforms array
 const platforms = [
-  { x: 0, y: 350, width: 10000, height: 100 },
+  { x: 0, y: 400, width: 10000, height: 100 },
   { x: 300, y: 300, width: 100, height: 10 },
   { x: 450, y: 250, width: 100, height: 10 },
   { x: 600, y: 200, width: 100, height: 10 },
@@ -135,11 +135,11 @@ function drawPyramids() {
   pyramidXCoordinates.forEach((pyramidX) => {
     // Drawing big pyramid
     let adjustedX = pyramidX - cameraOffsetX * 0.2 + offset; // Apply parallax and offset
-    drawPyramid(ctx, adjustedX, bigPyramidY, 300, 180, "sandybrown"); // Pass color as an argument
+    drawPyramid(ctx, adjustedX, bigPyramidY, 300, 200, "sandybrown"); // Pass color as an argument
 
     // Drawing small pyramid
     adjustedX = pyramidX - cameraOffsetX * 0.2 - offset; // Apply parallax and reverse offset
-    drawPyramid(ctx, adjustedX, smallPyramidY, 200, 120, "darkgoldenrod"); // Pass color as an argument
+    drawPyramid(ctx, adjustedX, smallPyramidY, 200, 150, "darkgoldenrod"); // Pass color as an argument
   });
 }
 
@@ -271,10 +271,13 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
-// Event listener for window.onload
 window.onload = function () {
   setupEventListeners();
-  bgMusic.volume = 0.5;
-  bgMusic.play();
   gameLoop();
+
+  // Play the music after user interaction
+  window.addEventListener("click", function () {
+    bgMusic.volume = 0.5;
+    bgMusic.play();
+  });
 };
